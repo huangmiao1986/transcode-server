@@ -1,7 +1,7 @@
 # transcode-server
 #视频转码
 
-环境安装：
+##环境安装：
 第一步 官网下载 http://ffmpeg.org/  
 第二步 1.下载x264 2. 安装h264高清无损编码 ./configure --disable-asm --enable-shared
 make 
