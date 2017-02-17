@@ -1,5 +1,5 @@
 # transcode-server
-视频转码
+#视频转码
 
 环境安装：
 第一步 官网下载 http://ffmpeg.org/  
