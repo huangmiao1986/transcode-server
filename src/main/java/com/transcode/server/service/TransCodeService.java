@@ -1,6 +1,6 @@
 package com.transcode.server.service;
 
-import java.util.Map;
+import com.transcode.server.response.TransCodeResponse;
 
 /**
  * 
@@ -9,5 +9,5 @@ import java.util.Map;
  * @version $Id: TransCodeService.java, v 0.1 2017年2月16日 上午11:02:18 huangmiao Exp $
  */
 public interface TransCodeService {
-	public Map<String,String> transferAndUpload(String transFile);
+	public TransCodeResponse transferAndUpload(String projectPath,String account,String[] transFile,String ratio) throws Exception;
 }

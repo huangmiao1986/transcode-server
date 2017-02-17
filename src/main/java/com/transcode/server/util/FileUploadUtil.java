@@ -23,8 +23,7 @@ public class FileUploadUtil {
 	private static final String APIKEY = "lJX+c+o84zZqqMbwAmFjjczYVF0=";
 	
 	public static String createPath(String projectPath,String path) {
-		String destPath = projectPath + File.separator + "..";// 工程目录的上一层目录
-
+		String destPath = projectPath;
 		String[] dir = path.split("/");
 		for (int i = 0; i < dir.length; i++) {
 			destPath += File.separator + dir[i];
