@@ -16,9 +16,9 @@ import com.transcode.server.util.FileUploadUtil;
 public class TransCodeServiceImpl implements TransCodeService {
 
 	@Override
-	public TransCodeResponse transferAndUpload(String projectPath,String account,String[] transFiles,String ratio) throws Exception{
+	public TransCodeResponse transferAndUpload(String projectPath,String account,List<String> transFiles,String ratio) throws Exception{
 		TransCodeResponse response = new TransCodeResponse("0", "");
-		if(transFiles != null && transFiles.length > 0) {
+		if(transFiles != null && transFiles.size() > 0) {
 			List<TransCodeNode> list = new ArrayList<TransCodeNode>();
 			String desPath = FileUploadUtil.createPath(projectPath, "trans/temp"+File.separator+account);
 			for(String transFile:transFiles) {
@@ -40,13 +40,5 @@ public class TransCodeServiceImpl implements TransCodeService {
 		}
 		return response;
 	}
-	public static void main(String[] args) {
-		TransCodeServiceImpl transService = new TransCodeServiceImpl();
-		try {
-			String[] transFiles = {"http://baby-file.b0.upaiyun.com/uploads/manage/videos/1-2-6-1-gqdb.mp4"};
-			transService.transferAndUpload("/home/huangmiao","12345",transFiles,"320*240");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+
 }

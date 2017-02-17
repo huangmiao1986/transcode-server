@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,15 +14,18 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.gson.reflect.TypeToken;
 import com.transcode.server.response.TransCodeResponse;
 import com.transcode.server.service.TransCodeService;
 import com.transcode.server.util.FileUploadUtil;
 import com.transcode.server.util.JsonUtil;
+import com.transcode.server.util.StringUtil;
 
 @Controller
 public class TransCodeController {
@@ -31,24 +35,46 @@ public class TransCodeController {
 	@Resource
 	private TransCodeService transCodeService;
 	
-	@RequestMapping(value = "action/transcode", method = RequestMethod.POST,consumes={"application/json;charset=UTF-8"},produces = {"application/json;charset=UTF-8"})
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "action/transcodeurl", method = RequestMethod.POST,produces = {"application/json;charset=UTF-8"})
 	@ResponseBody
-	public String uploadAvatarPhoto(HttpServletRequest request,
+	public String transCodeForUrl(HttpServletRequest request,
 			@RequestParam(value="account",required = true) String account,
-			@RequestParam(value="videoUrls[]",required = false) String[] videoUrls,
-			@RequestParam(value="account",required = true) String ratio
+			@RequestParam(value="ratio",required = true) String ratio,
+			@RequestBody String body
 			)  throws ServletException, IOException{
 		 	try {
-		 		String projectPath = request.getSession().getServletContext().getRealPath(""); 
-		 		if(videoUrls != null && videoUrls.length > 0) {//在线视频地址
-		 			return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,videoUrls,ratio));
-		 		} else {
-		 			String tempPath = FileUploadUtil.createPath(projectPath, "upload/temp/sourceVideos");
-		 			List<String> fileList = writeFileToTemp(request,tempPath,allowedVideo,account);
-		 			if(fileList != null && fileList.size() > 0) {
-		 				return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,fileList.toArray(new String[fileList.size()]),ratio));
-		 			}
+		 		String projectPath = request.getSession().getServletContext().getRealPath("");
+		 		if(StringUtil.isNotBlank(body)) {
+		 			List<String> videoUrls = (List<String>) JsonUtil.fromJson(body, new TypeToken<List<String>>(){}.getType());
+			 		if(videoUrls != null && videoUrls.size() > 0) {//在线视频地址
+			 			return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,videoUrls,ratio));
+			 		}
 		 		}
+			} catch(FileUploadException e){
+				e.printStackTrace();
+				return JsonUtil.toJson(new TransCodeResponse("1","transCode fail"));
+			}catch (Exception e) {
+				e.printStackTrace();
+				return JsonUtil.toJson(new TransCodeResponse("1","transCode fail"));
+			}
+		 	
+		 	return JsonUtil.toJson(new TransCodeResponse("1","transCode fail"));
+	}
+	
+	@RequestMapping(value = "action/transcodefile", method = RequestMethod.POST,produces = {"application/json;charset=UTF-8"})
+	@ResponseBody
+	public String transCodeForFile(HttpServletRequest request,
+			@RequestParam(value="account",required = true) String account,
+			@RequestParam(value="ratio",required = true) String ratio
+			)  throws ServletException, IOException{
+		 	try {
+		 		String projectPath = request.getSession().getServletContext().getRealPath("");
+	 			String tempPath = FileUploadUtil.createPath(projectPath, "upload/temp/sourceVideos/"+account);
+	 			List<String> fileList = writeFileToTemp(request,tempPath,allowedVideo);
+	 			if(fileList != null && fileList.size() > 0) {
+	 				return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,fileList,ratio));
+	 			}
 			} catch(FileUploadException e){
 				e.printStackTrace();
 				return JsonUtil.toJson(new TransCodeResponse("1","transCode fail"));
@@ -70,7 +96,8 @@ public class TransCodeController {
 	 * @throws FileUploadException
 	 */
 	@SuppressWarnings("unchecked")
-	private List<String> writeFileToTemp(HttpServletRequest request,String tempPath,String[] allowedType,String account) throws Exception,FileUploadException {
+	private List<String> writeFileToTemp(HttpServletRequest request,String tempPath,String[] allowedType) throws Exception,FileUploadException {
+		System.out.println("文件写入本地开始====");
 		List<String> fileList = new ArrayList<String>();
 		 //获得磁盘文件条目工厂。  
         DiskFileItemFactory factory = new DiskFileItemFactory();  
@@ -87,6 +114,7 @@ public class TransCodeController {
             //获取表单属性名字。  
             String name = item.getFieldName();  
             //如果获取的表单信息是普通的文本信息。即通过页面表单形式传递来的字符串。  
+            System.out.println("isFormField:"+item.isFormField());
             if(item.isFormField()){  
                 //获取用户具体输入的字符串，  
                 String value = item.getString();  
@@ -102,6 +130,7 @@ public class TransCodeController {
                 String filename = value.substring(start+1);  
                 boolean allowedFlag = false;
                 String fileFormat = filename.substring(filename.lastIndexOf(".") + 1);
+                System.out.println("filename:"+filename);
                 for (String allowed : allowedType)
                 {
                     if (allowed.equals(fileFormat)) {
@@ -113,9 +142,9 @@ public class TransCodeController {
                 /*写到文件中*/  
                 if(allowedFlag) {
                 	System.out.println("获取文件总量的容量:"+ item.getSize());
-                	item.write(new File(tempPath,account));
+                	item.write(new File(tempPath+File.separator+filename));
                 	
-                	fileList.add(tempPath+File.separator+account+File.separator+filename);
+                	fileList.add(tempPath+File.separator+filename);
 	            }  
 	        }  
         }
