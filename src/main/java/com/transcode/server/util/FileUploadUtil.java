@@ -2,25 +2,18 @@ package com.transcode.server.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Type;
-//import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.google.gson.reflect.TypeToken;
-
-import main.java.com.upyun.FormUploader;
-import main.java.com.upyun.Params;
-import main.java.com.upyun.Result;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.multipart.FilePart;
+import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
+import org.apache.commons.httpclient.methods.multipart.Part;
 
 public class FileUploadUtil {
-	private static Type type = new TypeToken<Map<String, String>>() {}.getType();
-	private static final String BUCKET_NAME = "baby-file";
-	private static final String APIKEY = "lJX+c+o84zZqqMbwAmFjjczYVF0=";
+	
+	private static String URL_STR = "http://bak.putao.fs.kwwwy.com/trans/%s";
 	
 	public static String createPath(String projectPath,String path) {
 		String destPath = projectPath;
@@ -40,32 +33,28 @@ public class FileUploadUtil {
 		return destPath;
 	}
 	
-	public static String uploadFile(String filePath) throws FileNotFoundException, IOException {
+	public static String uploadFile(String filePath){
+		System.out.println("=======上传中...========");
 		File file = new File(filePath);
-		// 取大小
-//		Double aa = (double) (file.length() / 1000.0 / 1000.0);
-//		BigDecimal bd = new BigDecimal(aa);
-//		String size = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + " M";
-
-		final Map<String, Object> paramsMap = new HashMap<String, Object>();
-
-		String fileName = file.getName();
-		String suffix = fileName.substring(fileName.lastIndexOf("."));
-
-		paramsMap.put(Params.SAVE_KEY, "/uploads/test/{year}{mon}{day}/{random32}" + suffix);
-		FormUploader uploader = new FormUploader(BUCKET_NAME, APIKEY, null);
-		Result result = uploader.upload(paramsMap, input2byte(new FileInputStream(file)));
-		int code = result.getCode();
-		if (code == 200 && result.isSucceed() == true) {
-			String msg = result.getMsg();
-			@SuppressWarnings("unchecked")
-			Map<String, String> msgJson = (Map<String, String>) JsonUtil.fromJson(msg, type);
-			String url = "http://baby-file.b0.upaiyun.com"+ msgJson.get("url");
-			return url;
-		} else {
-			System.out.println("upload fail:"+result.getMsg());
-			return "";
+		String postUrl = String.format(URL_STR, file.getName());
+		PostMethod filePost = new PostMethod(postUrl);
+		HttpClient client = new HttpClient();
+		try {
+			Part[] parts = { new FilePart(file.getName(), file) };
+			filePost.setRequestEntity(new MultipartRequestEntity(parts,filePost.getParams()));
+			client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
+			int status = client.executeMethod(filePost);
+			if (status == HttpStatus.SC_OK) {
+				System.out.println("上传成功");
+			} else {
+				System.out.println("上传失败");
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		} finally {
+			filePost.releaseConnection();
 		}
+		return postUrl;
 	}
 	
 	public static final byte[] input2byte(InputStream inStream) throws IOException {
