@@ -4,12 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.multipart.FilePart;
-import org.apache.commons.httpclient.methods.multipart.MultipartRequestEntity;
-import org.apache.commons.httpclient.methods.multipart.Part;
 
 public class FileUploadUtil {
 	
@@ -34,27 +28,10 @@ public class FileUploadUtil {
 	}
 	
 	public static String uploadFile(String filePath){
-		System.out.println("=======上传中...========");
 		File file = new File(filePath);
-		String postUrl = String.format(URL_STR, file.getName());
-		PostMethod filePost = new PostMethod(postUrl);
-		HttpClient client = new HttpClient();
-		try {
-			Part[] parts = { new FilePart(file.getName(), file) };
-			filePost.setRequestEntity(new MultipartRequestEntity(parts,filePost.getParams()));
-			client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
-			int status = client.executeMethod(filePost);
-			if (status == HttpStatus.SC_OK) {
-				System.out.println("上传成功");
-			} else {
-				System.out.println("上传失败");
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		} finally {
-			filePost.releaseConnection();
-		}
-		return postUrl;
+		String curlCommend = "curl -T "+filePath+" "+String.format(URL_STR, file.getName());
+		CommandUtil.runCmd(curlCommend);
+		return String.format(URL_STR, file.getName());
 	}
 	
 	public static final byte[] input2byte(InputStream inStream) throws IOException {
