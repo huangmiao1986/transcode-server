@@ -16,7 +16,7 @@ import com.transcode.server.util.FileUploadUtil;
 public class TransCodeServiceImpl implements TransCodeService {
 
 	@Override
-	public TransCodeResponse transferAndUpload(String projectPath,String account,List<String> transFiles,String ratio) throws Exception{
+	public TransCodeResponse transferAndUpload(String projectPath,String account,List<String> transFiles,String ratio,String vcodec) throws Exception{
 		TransCodeResponse response = new TransCodeResponse("0", "");
 		if(transFiles != null && transFiles.size() > 0) {
 			List<TransCodeNode> list = new ArrayList<TransCodeNode>();
@@ -24,7 +24,9 @@ public class TransCodeServiceImpl implements TransCodeService {
 			for(String transFile:transFiles) {
 				String outTempVideoFile = desPath+File.separator+System.currentTimeMillis()+".mp4";
 				String outTempPicFile = desPath+File.separator+System.currentTimeMillis()+".jpeg";
-				if(CommandUtil.executeCodecs(transFile, outTempVideoFile, outTempPicFile, ratio)) {
+				if(CommandUtil.executeCodecs(transFile, outTempVideoFile, outTempPicFile, ratio,vcodec)) {
+					File file  = new File(transFile);
+					file.delete();
 					String videoUrl = FileUploadUtil.uploadFile(outTempVideoFile);
 					String picUrl = FileUploadUtil.uploadFile(outTempPicFile);
 					TransCodeNode node = new TransCodeNode();

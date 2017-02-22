@@ -11,5 +11,5 @@ import com.transcode.server.response.TransCodeResponse;
  * @version $Id: TransCodeService.java, v 0.1 2017年2月16日 上午11:02:18 huangmiao Exp $
  */
 public interface TransCodeService {
-	public TransCodeResponse transferAndUpload(String projectPath,String account,List<String> transFile,String ratio) throws Exception;
+	public TransCodeResponse transferAndUpload(String projectPath,String account,List<String> transFile,String ratio,String vcodec) throws Exception;
 }

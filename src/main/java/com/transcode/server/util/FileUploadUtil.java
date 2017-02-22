@@ -31,6 +31,7 @@ public class FileUploadUtil {
 		File file = new File(filePath);
 		String curlCommend = "curl -T "+filePath+" "+String.format(URL_STR, file.getName());
 		CommandUtil.runCmd(curlCommend);
+		file.delete();
 		return String.format(URL_STR, file.getName());
 	}
 	

@@ -41,6 +41,7 @@ public class TransCodeController {
 	public String transCodeForUrl(HttpServletRequest request,
 			@RequestParam(value="account",required = true) String account,
 			@RequestParam(value="ratio",required = true) String ratio,
+			@RequestParam(value="vcodec",required = true) String vcodec,
 			@RequestBody String body
 			)  throws ServletException, IOException{
 		 	try {
@@ -48,7 +49,7 @@ public class TransCodeController {
 		 		if(StringUtil.isNotBlank(body)) {
 		 			List<String> videoUrls = (List<String>) JsonUtil.fromJson(body, new TypeToken<List<String>>(){}.getType());
 			 		if(videoUrls != null && videoUrls.size() > 0) {//在线视频地址
-			 			return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,videoUrls,ratio));
+			 			return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,videoUrls,ratio,vcodec));
 			 		}
 		 		}
 			} catch(FileUploadException e){
@@ -66,14 +67,15 @@ public class TransCodeController {
 	@ResponseBody
 	public String transCodeForFile(HttpServletRequest request,
 			@RequestParam(value="account",required = true) String account,
-			@RequestParam(value="ratio",required = true) String ratio
+			@RequestParam(value="ratio",required = true) String ratio,
+			@RequestParam(value="vcodec",required = true) String vcodec
 			)  throws ServletException, IOException{
 		 	try {
 		 		String projectPath = request.getSession().getServletContext().getRealPath("");
 	 			String tempPath = FileUploadUtil.createPath(projectPath, "upload/temp/sourceVideos/"+account);
 	 			List<String> fileList = writeFileToTemp(request,tempPath,allowedVideo);
 	 			if(fileList != null && fileList.size() > 0) {
-	 				return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,fileList,ratio));
+	 				return JsonUtil.toJson(transCodeService.transferAndUpload(projectPath,account,fileList,ratio,vcodec));
 	 			}
 			} catch(FileUploadException e){
 				e.printStackTrace();
